@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 5 Hacktoberfest Issues for GitHub Repositories</title>
+    <link rel="stylesheet" type="text/css" href="githubApp.css">
+</head>
+<body>
+    <h1>Top 5 Hacktoberfest Issues for GitHub Repositories</h1>
+
+    <ul id="repo-issues">
+        <!-- Issues will be displayed here -->
+    </ul>
+
+    <!-- <script type="module" src="githubApp.js"></script> -->
+    <script type="module">
+        import { Octokit } from "https://esm.sh/@octokit/rest";
+
+        const repositories = [
+            "better-together-org/community-engine-rails",
+            "better-together-org/community-engine-vue",
+            "better-together-org/better-together-website"
+        ];
+
+        const octokit = new Octokit();
+
+        async function fetchIssues(repo) {
+            try {
+                const [org, project] = repo.split('/');
+                const response = await octokit.issues.listForRepo({
+                    owner: org,
+                    repo: project,
+                    per_page: 5, // Number of issues to fetch
+                    labels: "hacktoberfest" // Filter by the "hacktoberfest" label
+                });
+
+                return response.data;
+            } catch (error) {
+                console.error(`Error fetching issues for ${repo}:`, error);
+                return [];
+            }
+        }
+
+        async function displayIssues() {
+            const repoIssues = document.getElementById("repo-issues");
+
+            for (const repo of repositories) {
+                const issues = await fetchIssues(repo);
+
+                if (issues.length > 0) {
+                    const repoHeader = document.createElement("h2");
+                    repoHeader.textContent = `Hacktoberfest Issues for ${repo}`;
+                    repoIssues.appendChild(repoHeader);
+
+                    const repoList = document.createElement("ul");
+
+                    issues.forEach(issue => {
+                        const listItem = document.createElement("li");
+                        listItem.innerHTML = `<strong>${issue.title}</strong><br /><div class="issue-description">${issue.body}</div>`;
+                        repoList.appendChild(listItem);
+                    });
+
+                    repoIssues.appendChild(repoList);
+                }
+            }
+        }
+
+        displayIssues();
+    </script>
+</body>
+</html>
